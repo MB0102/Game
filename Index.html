@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,
+initial-scale=1.0">
+<title>Energy Innovation Dash: Race to the Future</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com"
+crossorigin>
+<link
+href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;
+700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Inter'
+, sans-serif;
+background-color: #f3f4f6; /* Light gray background */
+}
+/* Custom scrollbar for event log */
+.event-log::-webkit-scrollbar {
+width: 6px;
+}
+.event-log::-webkit-scrollbar-track {
+background: #e5e7eb;
+border-radius: 10px;
+}
+.event-log::-webkit-scrollbar-thumb {
+background: #9ca3af;
+border-radius: 10px;
+}
+.event-log::-webkit-scrollbar-thumb:hover {
+background: #6b7280;
+}
+/* Simple modal styling */
+.modal {
+display: none; /* Hidden by default */
+position: fixed;
+z-index: 50;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0,0,0,0.6); /* Dim background */
+padding-top: 60px;
+}
+.modal-content {
+background-color: #fefefe;
+margin: 5% auto;
+padding: 20px;
+border: 1px solid #888;
+width: 80%;
+max-width: 600px;
+border-radius: 0.5rem; /* Rounded corners */
+position: relative;
+}
+.close-button {
+color: #aaa;
+position: absolute;
+top: 10px;
+right: 20px;
+font-size: 28px;
+font-weight: bold;
+cursor: pointer;
+}
+.close-button:hover,
+.close-button:focus {
+color: black;
+text-decoration: none;
+}
+/* TRL Progress Bar */
+.trl-progress-bg {
+background-color: #e5e7eb; /* Gray background */
+border-radius: 0.375rem; /* Rounded */
+overflow: hidden;
+height: 1rem; /* Fixed height */
+}
+.trl-progress-bar {
+background-color: #3b82f6; /* Blue progress */
+height: 100%;
+border-radius: 0.375rem;
+transition: width 0.5s ease-in-out;
+text-align: center;
+color: white;
+font-size: 0.75rem; /* Smaller text */
+line-height: 1rem; /* Center text vertically */
+}
+/* Simple animation for event messages */
+.event-item {
+animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body class="p-4 md:p-8">
+<div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+<h1 class="text-3xl font-bold mb-6 text-center
+text-gray-800">Energy Innovation Dash</h1>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4
+bg-gray-100 rounded-lg">
+<div>
+<h2 class="text-lg font-semibold
+text-gray-700">Player: <span id="player-name"
+class="font-normal">N/A</span></h2>
+<p class="text-sm text-gray-600"
+id="player-description"></p>
+</div>
+<div class="text-center">
+<h2 class="text-lg font-semibold text-gray-700">Turn:
+<span id="turn-counter">0</span> / <span id="max-turns">15</span>
+(<span id="current-year">2025</span>)</h2>
+<p class="text-lg font-semibold text-green-600">Score:
+<span id="player-score">0</span></p>
+</div>
+<div class="text-right">
+<h3 class="text-md font-semibold
+text-gray-700">Resources</h3>
+<p class="text-sm text-gray-600">Public R&D: $<span
+id="public-funds">0</span> M</p>
+<p class="text-sm text-gray-600">Corp R&D: $<span
+id="corp-funds">0</span> M</p>
+<p class="text-sm text-gray-600">VC Funds: $<span
+id="vc-funds">0</span> M</p>
+<p class="text-sm text-gray-600">Research Pts: <span
+id="research-points">0</span></p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2">
+<h2 class="text-xl font-semibold mb-4
+text-gray-800">Technology Pathways</h2>
+<div id="tech-pathways" class="grid grid-cols-1
+md:grid-cols-2 gap-4">
+</div>
+</div>
+<div>
+<div>
+<h2 class="text-xl font-semibold mb-4
+text-gray-800">Races to Firsts</h2>
+<div id="races-container" class="space-y-3">
+</div>
+</div>
+<div class="mt-6">
+<h2 class="text-xl font-semibold mb-4
+text-gray-800">Event Log</h2>
+<div id="event-log" class="h-64 overflow-y-auto
+p-3 bg-gray-50 rounded-lg border border-gray-200 event-log space-y-2">
+<p class="text-gray-500 italic">Game started.
+Choose your player.</p>
+</div>
+</div>
+<div class="mt-6 text-center">
+<button id="end-turn-button" class="bg-blue-600
+hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow
+transition duration-150 ease-in-out disabled:opacity-50
+disabled:cursor-not-allowed" disabled>End Turn (<span
+id="current-year-btn">2025</span>)</button>
+</div>
+</div>
+</div>
+</div>
+<div id="player-select-modal" class="modal" style="display:
+block;"> <div class="modal-content">
+<h2 class="text-xl font-bold mb-4 text-center">Choose
+Your Faction</h2>
+<p class="text-center mb-4 text-gray-600">Select a region
+or corporation to lead the energy innovation race!</p>
+<div id="player-options" class="grid grid-cols-1
+md:grid-cols-2 gap-4">
+</div>
+</div>
+</div>
+<div id="event-modal" class="modal">
+<div class="modal-content">
+<span class="close-button"
+onclick="closeModal('event-modal')">×</span>
+<h2 class="text-xl font-bold mb-4 text-center">Event
+Occurred!</h2>
+<p id="event-description" class="text-center text-gray-700
+mb-4"></p>
+<div class="text-center">
+<button onclick="closeModal('event-modal')"
+class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4
+rounded-lg">Acknowledge</button>
+</div>
+</div>
+</div>
+<div id="investment-modal" class="modal">
+<div class="modal-content">
+<span class="close-button"
+onclick="closeModal('investment-modal')">×</span>
+<h2 class="text-xl font-bold mb-4 text-center">Invest in
+<span id="invest-tech-name">Technology</span></h2>
+<p class="text-sm text-gray-600 mb-2">Current TRL: <span
+id="invest-tech-trl">0</span>/9</p>
+<p class="text-sm text-gray-600 mb-4">Cost to next TRL
+attempt: $<span id="invest-tech-cost">0</span> M Public/Corp R&D,
+<span id="invest-tech-rp-cost">0</span> Research Pts</p>
+<div class="mb-4">
+<label for="public-investment" class="block text-sm
+font-medium text-gray-700">Public R&D Investment ($M):</label>
+<input type="number" id="public-investment" min="0"
+value="0" class="mt-1 block w-full px-3 py-2 border border-gray-300
+rounded-md shadow-sm focus:outline-none focus:ring-indigo-500
+focus:border-indigo-500 sm:text-sm">
+<p class="text-xs text-gray-500">Available: $<span
+id="modal-public-funds">0</span> M</p>
+</div>
+<div class="mb-4">
+<label for="corp-investment" class="block text-sm
+font-medium text-gray-700">Corporate R&D Investment ($M):</label>
+<input type="number" id="corp-investment" min="0"
+value="0" class="mt-1 block w-full px-3 py-2 border border-gray-300
+rounded-md shadow-sm focus:outline-none focus:ring-indigo-500
+focus:border-indigo-500 sm:text-sm">
+<p class="text-xs text-gray-500">Available: $<span
+id="modal-corp-funds">0</span> M</p>
+</div>
+<div class="mb-4">
+<label for="rp-investment" class="block text-sm
+font-medium text-gray-700">Research Points Investment:</label>
+<input type="number" id="rp-investment" min="0"
+value="0" class="mt-1 block w-full px-3 py-2 border border-gray-300
+rounded-md shadow-sm focus:outline-none focus:ring-indigo-500
+focus:border-indigo-500 sm:text-sm">
+<p class="text-xs text-gray-500">Available: <span
+id="modal-research-points">0</span></p>
+</div>
+<p class="text-sm text-red-600 mb-4"
+id="investment-error" style="display: none;">Insufficient funds or
+research points.</p>
+<div class="text-center">
+<button id="confirm-investment-button"
+class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4
+rounded-lg mr-2">Confirm Investment</button>
+<button onclick="closeModal('investment-modal')"
+class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4
+rounded-lg">Cancel</button>
+</div>
+</div>
+</div>
+<div id="game-over-modal" class="modal">
+<div class="modal-content">
+<h2 class="text-2xl font-bold mb-4 text-center">Game
+Over!</h2>
+<p id="game-over-message" class="text-center text-lg
+text-gray-700 mb-4"></p>
+<p class="text-center text-xl font-semibold text-green-600
+mb-6">Final Score: <span id="final-score">0</span></p>
+<div class="text-center">
+<button onclick="window.location.reload()"
+class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4
+rounded-lg">Play Again?</button>
+</div>
+</div>
+</div>
+<script>
+// --- Game Configuration ---
+const MAX
+TURNS = 15; // Game ends after 15 turns (e.g.,
+_
+2025-2040)
+const START
+const BASE
+_
+TRL
+YEAR = 2025;
+COST
+MONEY = 50; // Base cost in $M to attempt
+_
+_
+_
+TRL increase
+const BASE
+TRL
+COST
+RP = 5; // Base cost in Research
+Points to attempt TRL increase
+const TRL
+_
+_
+COST
+_
+MULTIPLIER = 1.5; // Cost increases for higher
+_
+_
+TRLs
+const BASE
+TRL
+SUCCESS
+RATE = 0.5; // 50% base chance to
+_
+_
+increase TRL if fully funded
+_
+const RESEARCH
+const VC
+FUNDS
+const VC
+FUNDS
+funds ($M, +/-)
+POINTS
+PER
+TURN = 10;
+_
+_
+_
+BASE = 30; // Base VC funds per turn ($M)
+_
+_
+VOLATILITY = 20; // Max random variation in VC
+_
+_
+// --- Player Factions ---
+const factions = {
+'USA Inc.
+': {
+name: 'USA Inc.
+'
+,
+description: 'Strong VC market, balanced tech
+portfolio. Starts with higher VC funds but potentially slower public
+R&D growth.
+'
+,
+startPublicFunds: 100,
+startCorpFunds: 150,
+startVCFunds: 200, // Higher VC
+startRP: 20,
+bonuses: { vcMultiplier: 1.2, publicFundsGrowth: 0.04
+}, // Slightly better VC, slightly lower public growth
+startTechLevels: { 'Solar PV': 7,
+'Wind Power': 7,
+'Li-ion Batteries': 7,
+'Hydrogen (Green)': 4,
+'CCUS/CDR': 4,
+'AI for
+Energy': 5,
+'Advanced Nuclear': 4 }
+},
+'EU Innovate': {
+name: 'EU Innovate'
+,
+description: 'Strong public R&D focus, excels in
+complex projects. Starts with higher public funds and RP, but lower
+VC.
+'
+,
+startPublicFunds: 150, // Higher Public R&D
+startCorpFunds: 100,
+startVCFunds: 100,
+startRP: 30, // Higher RP
+bonuses: { publicFundsGrowth: 0.06, corpFundsGrowth:
+0.05 }, // Good public/corp growth
+startTechLevels: { 'Solar PV': 6,
+'Li-ion Batteries': 6,
+'Hydrogen (Green)': 5,
+'Wind Power': 7,
+'CCUS/CDR': 5,
+'AI for
+Energy': 4,
+'Advanced Nuclear': 5 }
+},
+'Dragon Tech': {
+name: 'Dragon Tech'
+,
+description: 'Dominant in manufacturing & patents for
+modular tech. Strong corporate investment, rapid scaling potential for
+certain techs.
+'
+,
+startPublicFunds: 120,
+startCorpFunds: 200, // Higher Corp R&D
+startVCFunds: 150,
+startRP: 25,
+bonuses: { corpFundsGrowth: 0.07, modularTechBonus:
+0.1 }, // High corp growth, bonus for batteries/solar TRL chance
+startTechLevels: { 'Solar PV': 8,
+'Li-ion Batteries': 8,
+'Hydrogen (Green)': 3,
+'Wind Power': 6,
+'CCUS/CDR': 4,
+'AI for
+Energy': 6,
+'Advanced Nuclear': 3 }
+},
+'Global South Collective': {
+name: 'Global South Collective'
+,
+description: 'Faces funding challenges but has high
+potential and lower starting costs for some basic R&D. Focus on
+adaptation and leapfrogging.
+'
+,
+startPublicFunds: 50, // Lower funds
+startCorpFunds: 50,
+startVCFunds: 50,
+startRP: 15,
+bonuses: { lowerEarlyTRLCost: 0.8, vcMultiplier: 0.8
+}, // Cheaper early R&D, harder to attract VC
+startTechLevels: { 'Solar PV': 5,
+'Li-ion Batteries': 4,
+'Hydrogen (Green)': 2,
+'Wind Power': 5,
+'CCUS/CDR': 2,
+'AI for
+Energy': 3,
+'Advanced Nuclear': 2 }
+}
+};
+// --- Technology Pathways ---
+// Simplified: TRL cost increases, success rate depends on
+funding ratio.
+// AI provides a global bonus to success rates.
+const technologies = {
+'Solar PV': { name: 'Solar PV'
+, description: 'Photovoltaic
+power generation, including perovskites.
+'
+, trl: 0, patents: 0 },
+'Wind Power': { name: 'Wind Power'
+, description: 'Onshore
+and offshore wind turbines, including floating.
+'
+, trl: 0, patents: 0
+},
+'Li-ion Batteries': { name: 'Li-ion Batteries'
+description: 'Dominant battery tech for EVs and storage.
+'
+patents: 0 },
+,
+, trl: 0,
+'Next-Gen Batteries': { name: 'Next-Gen Batteries'
+,
+description: 'Solid-state, Sodium-ion, new chemistries.
+'
+, trl: 2,
+patents: 0 }, // Start lower
+'Hydrogen (Green)': { name: 'Hydrogen (Green)'
+,
+description: 'Electrolysis for low-emission hydrogen production.
+'
+,
+trl: 0, patents: 0 },
+'CCUS/CDR': { name: 'CCUS/CDR'
+, description: 'Carbon
+Capture, Utilization, Storage & Direct Air Capture.
+'
+, trl: 0, patents:
+0 },
+'Advanced Nuclear': { name: 'Advanced Nuclear'
+,
+description: 'Small Modular Reactors (SMRs) and Fusion concepts.
+'
+,
+trl: 0, patents: 0 },
+'AI for Energy': { name: 'AI for Energy'
+, description: 'AI
+applications for materials discovery, grid optimization, etc. Boosts
+other R&D.
+'
+, trl: 0, patents: 0 }
+};
+// --- Races to Firsts ---
+// Simplified: Achieve target TRL and invest specific amount.
+const races = {
+'Commercial SMR Deployment': { name: 'Commercial SMR
+Deployment'
+, description: 'First grid-connected, repeatedly deployable
+SMR.
+'
+, targetTRL: 8, techDependency: 'Advanced Nuclear'
+, cost: 500,
+progress: 0, completed: false, reward: 100 },
+'Low-Cost Green Hydrogen (<$2/kg)': { name: 'Low-Cost
+Green Hydrogen (<$2/kg)'
+, description: 'Achieve large-scale production
+below $2/kg.
+'
+, targetTRL: 7, techDependency: 'Hydrogen (Green)'
+, cost:
+400, progress: 0, completed: false, reward: 80 },
+'Scaled Direct Air Capture (DAC)': { name: 'Scaled Direct
+Air Capture (DAC)'
+, description: 'Operational DAC facility removing
+>100k tons CO2/year.
+'
+, targetTRL: 7, techDependency: 'CCUS/CDR'
+, cost:
+450, progress: 0, completed: false, reward: 90 },
+'Viable Solid-State Battery': { name: 'Viable Solid-State
+Battery'
+, description: 'Demonstrate a commercially promising
+solid-state EV battery.
+'
+, targetTRL: 6, techDependency: 'Next-Gen
+Batteries'
+, cost: 300, progress: 0, completed: false, reward: 70 }
+};
+// --- Event Cards ---
+// Simplified effects
+const events = [
+{ name: "Global Policy Push"
+, description: "Major
+economies commit to climate goals. +20% Public R&D funds next turn.
+"
+,
+effect: (gs) => { gs.publicFundsBonus = 1.2; logEvent("Global Policy
+Push boosts public R&D funding next turn!"); } },
+{ name: "VC Market Boom"
+, description: "Venture Capital
+flows freely! +50% VC funds next turn.
+"
+, effect: (gs) => {
+gs.vcFundsMultiplier = 1.5; logEvent("Venture Capital market is
+booming!"); } },
+{ name: "VC Market Bust"
+, description: "Investors pull
+back.
+-50% VC funds next turn.
+"
+, effect: (gs) => {
+gs.vcFundsMultiplier = 0.5; logEvent("Venture Capital market tightens
+significantly.
+"); } },
+{ name: "Geopolitical Tensions"
+, description: "Supply
+chain disruptions impact battery materials. Next-Gen Battery R&D cost
+x1.5 next turn.
+"
+, effect: (gs) => { gs.techCostMultipliers['Next-Gen
+Batteries'] = 1.5; logEvent("Geopolitical tensions increase costs for
+battery R&D.
+"); } },
+{ name: "AI Breakthrough"
+, description: "Advances in AI
+accelerate research globally. +10% TRL success chance for all techs
+next turn.
+"
+, effect: (gs) => { gs.globalTRLBonus = 0.1; logEvent("AI
+breakthrough accelerates R&D across the board!"); } },
+{ name: "Corporate R&D Surge"
+, description: "Industry
+doubles down on innovation. +20% Corporate R&D funds next turn.
+"
+,
+effect: (gs) => { gs.corpFundsBonus = 1.2; logEvent("Corporations
+increase their R&D spending!"); } },
+{ name: "Demonstration Setback"
+, description: "A major
+demonstration project faces delays.
+-10 Score.
+"
+, effect: (gs) => {
+gs.score -= 10; logEvent("Setback reported for a major demonstration
+project.
+"); } },
+{ name: "Patent Dispute"
+, description: "Legal battles slow
+progress in a key area.
+-10 Research Points.
+"
+, effect: (gs) => {
+gs.researchPoints = Math.max(0, gs.researchPoints - 10);
+logEvent("Patent disputes hinder research efforts.
+"); } },
+{ name: "Unexpected Discovery"
+, description: "Researchers
+make a leap in a random tech. +1 TRL for one random technology.
+"
+,
+effect: (gs) => {
+const techKeys = Object.keys(gs.technologies);
+const randomTechKey =
+techKeys[Math.floor(Math.random() * techKeys.length)];
+if (gs.technologies[randomTechKey].trl < 9) {
+gs.technologies[randomTechKey].trl++;
+logEvent(`Unexpected discovery advances
+${randomTechKey} to TRL ${gs.technologies[randomTechKey].trl}!`);
+} else {
+logEvent(`Unexpected discovery in
+${randomTechKey}, but it's already max TRL.
+`);
+}
+}},
+{ name: "Favorable Regulations"
+, description: "New
+standards boost demand for a specific technology. +10% success chance
+for one random tech.
+"
+, effect: (gs) => {
+const techKeys = Object.keys(gs.technologies);
+const randomTechKey =
+techKeys[Math.floor(Math.random() * techKeys.length)];
+gs.techSuccessBonus[randomTechKey] =
+(gs.techSuccessBonus[randomTechKey] || 0) + 0.1;
+logEvent(`Favorable regulations provide a boost for
+${randomTechKey} development!`);
+}},
+{ name: "Economic Slowdown"
+, description: "Global economy
+slows, budgets tighten.
+-10% Public & Corp R&D funds next turn.
+"
+,
+effect: (gs) => { gs.publicFundsBonus = 0.9; gs.corpFundsBonus = 0.9;
+logEvent("Economic slowdown leads to tighter budgets.
+"); } },
+{ name: "EMDE Leapfrog Opportunity"
+, description: "A
+developing nation shows rapid adoption potential. +15 Research
+Points.
+"
+, effect: (gs) => { gs.researchPoints += 15;
+logEvent("Emerging market shows potential for technology
+leapfrogging!"); } },
+];
+// --- Game State ---
+let gameState = {
+turn: 0,
+maxTurns: MAX
+TURNS,
+_
+currentYear: START
+YEAR,
+_
+selectedFaction: null,
+publicFunds: 0,
+corpFunds: 0,
+vcFunds: 0,
+researchPoints: 0,
+score: 0,
+technologies: {}, // Will be populated based on faction
+races: JSON.parse(JSON.stringify(races)), // Deep copy
+bonuses: {},
+// Modifiers for next turn
+publicFundsBonus: 1.0,
+corpFundsBonus: 1.0,
+vcFundsMultiplier: 1.0,
+globalTRLBonus: 0.0,
+techCostMultipliers: {},
+techSuccessBonus: {},
+gameOver: false,
+investingTechKey: null // Track which tech is being
+invested in via modal
+};
+// --- DOM Elements ---
+const playerNameEl = document.getElementById('player-name');
+const playerDescEl =
+document.getElementById('player-description');
+const turnCounterEl = document.getElementById('turn-counter');
+const maxTurnsEl = document.getElementById('max-turns');
+const currentYearEl = document.getElementById('current-year');
+const playerScoreEl = document.getElementById('player-score');
+const publicFundsEl = document.getElementById('public-funds');
+const corpFundsEl = document.getElementById('corp-funds');
+const vcFundsEl = document.getElementById('vc-funds');
+const researchPointsEl =
+document.getElementById('research-points');
+const techPathwaysContainer =
+document.getElementById('tech-pathways');
+const racesContainer =
+document.getElementById('races-container');
+const eventLogEl = document.getElementById('event-log');
+const endTurnButton =
+document.getElementById('end-turn-button');
+const currentYearBtnEl =
+document.getElementById('current-year-btn');
+const playerSelectModal =
+document.getElementById('player-select-modal');
+const playerOptionsContainer =
+document.getElementById('player-options');
+const eventModal = document.getElementById('event-modal');
+const eventDescriptionEl =
+document.getElementById('event-description');
+const investmentModal =
+document.getElementById('investment-modal');
+const investTechNameEl =
+document.getElementById('invest-tech-name');
+const investTechTrlEl =
+document.getElementById('invest-tech-trl');
+const investTechCostEl =
+document.getElementById('invest-tech-cost');
+const investTechRpCostEl =
+document.getElementById('invest-tech-rp-cost');
+const publicInvestmentInput =
+document.getElementById('public-investment');
+const corpInvestmentInput =
+document.getElementById('corp-investment');
+const rpInvestmentInput =
+document.getElementById('rp-investment');
+const modalPublicFundsEl =
+document.getElementById('modal-public-funds');
+const modalCorpFundsEl =
+document.getElementById('modal-corp-funds');
+const modalResearchPointsEl =
+document.getElementById('modal-research-points');
+const investmentErrorEl =
+document.getElementById('investment-error');
+const confirmInvestmentButton =
+document.getElementById('confirm-investment-button');
+const gameOverModal =
+document.getElementById('game-over-modal');
+const gameOverMessageEl =
+document.getElementById('game-over-message');
+const finalScoreEl = document.getElementById('final-score');
+// --- Game Logic Functions ---
+function initGame() {
+console.log("Initializing game...
+");
+renderPlayerOptions();
+// Game starts properly after player selection
+}
+function renderPlayerOptions() {
+playerOptionsContainer.innerHTML = ''; // Clear previous
+options
+Object.values(factions).forEach(faction => {
+const button = document.createElement('button');
+button.className = 'bg-blue-500 hover:bg-blue-600
+text-white font-bold py-3 px-4 rounded-lg shadow transition
+duration-150 ease-in-out text-left';
+button.innerHTML =
+`
+<h3 class="text-lg
+font-semibold">${faction.name}</h3>
+<p class="text-sm
+font-normal">${faction.description}</p>
+`
+;
+button.onclick = () => selectFaction(faction.name);
+playerOptionsContainer.appendChild(button);
+});
+}
+function selectFaction(factionName) {
+console.log("Faction selected:"
+, factionName);
+gameState.selectedFaction = factions[factionName];
+gameState.publicFunds =
+gameState.selectedFaction.startPublicFunds;
+gameState.corpFunds =
+gameState.selectedFaction.startCorpFunds;
+gameState.vcFunds =
+gameState.selectedFaction.startVCFunds;
+gameState.researchPoints =
+gameState.selectedFaction.startRP;
+gameState.bonuses = gameState.selectedFaction.bonuses;
+// Deep copy technologies and set initial TRLs
+gameState.technologies =
+JSON.parse(JSON.stringify(technologies));
+Object.keys(gameState.selectedFaction.startTechLevels).forEach(techKey
+=> {
+if (gameState.technologies[techKey]) {
+gameState.technologies[techKey].trl =
+gameState.selectedFaction.startTechLevels[techKey];
+}
+});
+// Reset races progress
+Object.values(gameState.races).forEach(race => {
+race.progress = 0;
+race.completed = false;
+});
+begins!`);
+gameState.turn = 0;
+gameState.currentYear = START
+gameState.score = 0;
+gameState.gameOver = false;
+YEAR;
+_
+closeModal('player-select-modal');
+logEvent(`Selected faction: ${factionName}. Game
+updateUI();
+startTurn(); // Start the first turn
+}
+function startTurn() {
+console.log(`Starting Turn ${gameState.turn + 1}`);
+gameState.turn++;
+gameState.currentYear = START
+YEAR + gameState.turn - 1;
+_
+// Reset turn-specific bonuses/multipliers before applying
+new ones
+gameState.techCostMultipliers = {};
+gameState.techSuccessBonus = {};
+gameState.globalTRLBonus = 0.0;
+// 1. Event Phase
+const randomEvent = events[Math.floor(Math.random() *
+events.length)];
+${randomEvent.name}`
+logEvent(`Turn ${gameState.turn} Event:
+,
+'event');
+showEventModal(randomEvent); // Apply effect after modal
+close
+// Apply persistent bonuses/multipliers from
+faction/previous events
+gameState.publicFunds *= gameState.publicFundsBonus;
+gameState.corpFunds *= gameState.corpFundsBonus;
+// Apply VC volatility
+const vcFluctuation = (Math.random() * 2 - 1) *
+VC
+FUNDS
+VOLATILITY;
+_
+_
+gameState.vcFunds = Math.max(0, (VC
+FUNDS
+BASE +
+_
+_
+vcFluctuation) * gameState.vcFundsMultiplier);
+// Reset temporary bonuses for the next turn calculation
+gameState.publicFundsBonus =
+gameState.bonuses.publicFundsGrowth ? (1 +
+gameState.bonuses.publicFundsGrowth) : 1.05; // Default growth if not
+specified
+gameState.corpFundsBonus =
+gameState.bonuses.corpFundsGrowth ? (1 +
+gameState.bonuses.corpFundsGrowth) : 1.05; // Default growth
+gameState.vcFundsMultiplier =
+gameState.bonuses.vcMultiplier || 1.0;
+// Add base income/funding (simplified)
+gameState.publicFunds += 50 * gameState.publicFundsBonus;
+// Base public funding + bonus
+gameState.corpFunds += 50 * gameState.corpFundsBonus; Base corporate funding + bonus
+gameState.researchPoints += RESEARCH
+POINTS
+PER
+TURN;
+_
+_
+_
+//
+// Round funds
+gameState.publicFunds = Math.round(gameState.publicFunds);
+gameState.corpFunds = Math.round(gameState.corpFunds);
+gameState.vcFunds = Math.round(gameState.vcFunds);
+endTurnButton.disabled = false; // Enable button for
+player actions
+updateUI();
+}
+function endTurn() {
+console.log(`Ending Turn ${gameState.turn}`);
+endTurnButton.disabled = true; // Disable button during
+resolution
+// --- Resolution Phase ---
+// Check race completions (based on investments made
+during the turn)
+Object.values(gameState.races).forEach(race => {
+if (!race.completed &&
+gameState.technologies[race.techDependency]?.trl >= race.targetTRL &&
+race.progress >= race.cost) {
+race.completed = true;
+gameState.score += race.reward;
+logEvent(`Race Completed: ${race.name}!
++${race.reward} Score!`
+,
+'success');
+}
+});
+// Check game over condition
+if (gameState.turn >= gameState.maxTurns) {
+gameState.gameOver = true;
+showGameOverModal();
+return; // Stop further processing
+}
+// Prepare for next turn
+updateUI(); // Update UI before starting next turn delay
+setTimeout(startTurn, 500); // Short delay before starting
+next turn
+}
+function calculateTRLCost(techKey) {
+const tech = gameState.technologies[techKey];
+if (!tech || tech.trl >= 9) return { money: Infinity, rp:
+Infinity };
+const baseMoney = BASE
+TRL
+COST
+MONEY *
+_
+_
+_
+Math.pow(TRL
+COST
+MULTIPLIER, tech.trl);
+_
+_
+const baseRP = BASE
+TRL
+COST
+RP *
+_
+_
+_
+Math.pow(TRL
+COST
+MULTIPLIER, tech.trl);
+_
+_
+// Apply cost multiplier if any event set it
+const moneyMultiplier =
+gameState.techCostMultipliers[techKey] || 1.0;
+const factionCostMultiplier = (tech.trl < 4 &&
+gameState.bonuses.lowerEarlyTRLCost) ?
+gameState.bonuses.lowerEarlyTRLCost : 1.0;
+return {
+money: Math.round(baseMoney * moneyMultiplier *
+factionCostMultiplier),
+rp: Math.round(baseRP * moneyMultiplier *
+factionCostMultiplier) // RP cost also affected
+};
+}
+function attemptTRLIncrease(techKey, investedMoney,
+investedRP) {
+const tech = gameState.technologies[techKey];
+if (!tech || tech.trl >= 9) return;
+const costs = calculateTRLCost(techKey);
+const requiredMoney = costs.money;
+const requiredRP = costs.rp;
+// Calculate funding ratio (simplified: average of money
+and RP ratio)
+// Ensure no division by zero if cost is 0 (though
+unlikely with current formula)
+const moneyRatio = requiredMoney > 0 ? Math.min(1,
+investedMoney / requiredMoney) : 1;
+const rpRatio = requiredRP > 0 ? Math.min(1, investedRP /
+requiredRP) : 1;
+const fundingRatio = (moneyRatio + rpRatio) / 2;
+// Calculate success chance
+let successChance = BASE
+TRL
+SUCCESS
+RATE * fundingRatio;
+_
+_
+_
+// Apply AI bonus (global)
+const aiBonus = gameState.technologies['AI for Energy'] ?
+(gameState.technologies['AI for Energy'].trl * 0.01) : 0; // 1% per AI
+TRL
+successChance += aiBonus;
+// Apply faction bonuses (e.g., modular tech)
+if (gameState.bonuses.modularTechBonus && ['Solar PV'
+,
+'Li-ion Batteries'
+,
+'Next-Gen Batteries'].includes(techKey)) {
+successChance += gameState.bonuses.modularTechBonus;
+}
+// Apply temporary event bonuses
+successChance += gameState.techSuccessBonus[techKey] ||
+0;
+successChance += gameState.globalTRLBonus;
+successChance = Math.min(0.95, Math.max(0.05,
+successChance)); // Clamp between 5% and 95%
+logEvent(`Attempting TRL increase for ${techKey}. Funding:
+${Math.round(fundingRatio*100)}%. Base Success:
+${Math.round(BASE
+TRL
+SUCCESS
+_
+_
+_
+RATE*100)}%. Final Chance:
+${Math.round(successChance*100)}%.
+`
+,
+'info');
+if (Math.random() < successChance) {
+tech.trl++;
+gameState.score += tech.trl * 5; // Score bonus for
+TRL increase
++${tech.trl * 5} Score.
+logEvent(`${techKey} advanced to TRL ${tech.trl}!
+`
+,
+'success');
+// Simple patent award
+if (tech.trl === 5 || tech.trl === 8) { // Award
+patent at mid/high TRL
+tech.patents = (tech.patents || 0) + 1;
+gameState.researchPoints += 5; // Bonus RP for
+patent
+logEvent(`Patent secured for ${techKey}! +5
+Research Points.
+`
+'info');
+,
+}
+} else {
+this turn.
+`
+,
+logEvent(`TRL increase attempt for ${techKey} failed
+'warning');
+}
+updateTechnologyCard(techKey); // Update specific card
+updateUI(); // Update overall resources
+}
+function investInRace(raceKey, amount) {
+const race = gameState.races[raceKey];
+if (!race || race.completed) return;
+const affordableAmount = Math.min(amount,
+gameState.corpFunds); // Use Corp funds for races for simplicity
+if (affordableAmount <= 0) return;
+gameState.corpFunds -= affordableAmount;
+race.progress += affordableAmount;
+gameState.score += Math.round(affordableAmount / 10); //
+Small score for investing
+logEvent(`Invested $${affordableAmount}M in Race:
+${race.name}. Progress: ${race.progress}/${race.cost}.
+`
+,
+'info');
+updateRaceProgress(raceKey);
+updateUI(); // Update funds display
+}
+// --- UI Update Functions ---
+function updateUI() {
+if (!gameState.selectedFaction || gameState.gameOver)
+return;
+playerNameEl.textContent = gameState.selectedFaction.name;
+playerDescEl.textContent =
+gameState.selectedFaction.description;
+turnCounterEl.textContent = gameState.turn;
+maxTurnsEl.textContent = gameState.maxTurns;
+currentYearEl.textContent = gameState.currentYear;
+currentYearBtnEl.textContent = gameState.currentYear;
+playerScoreEl.textContent = gameState.score;
+publicFundsEl.textContent = gameState.publicFunds;
+corpFundsEl.textContent = gameState.corpFunds;
+vcFundsEl.textContent = gameState.vcFunds;
+researchPointsEl.textContent = gameState.researchPoints;
+// Update Tech Pathways
+techPathwaysContainer.innerHTML = ''; // Clear existing
+Object.keys(gameState.technologies).forEach(key => {
+techPathwaysContainer.appendChild(createTechnologyCard(key));
+});
+// Update Races
+racesContainer.innerHTML = ''; // Clear existing
+Object.keys(gameState.races).forEach(key => {
+racesContainer.appendChild(createRaceCard(key));
+});
+// Update investment modal available funds
+modalPublicFundsEl.textContent = gameState.publicFunds;
+modalCorpFundsEl.textContent = gameState.corpFunds;
+modalResearchPointsEl.textContent =
+gameState.researchPoints;
+// Disable end turn button if game over
+endTurnButton.disabled = gameState.gameOver;
+}
+function createTechnologyCard(techKey) {
+const tech = gameState.technologies[techKey];
+const costs = calculateTRLCost(techKey);
+const card = document.createElement('div');
+card.className = 'bg-white p-4 rounded-lg shadow border
+border-gray-200';
+card.id =
+`tech-card-${techKey.replace(/\s+/g,
+'
+-
+')}`
+Create unique ID
+const progressPercent = tech.trl >= 9 ? 100 :
+Math.round((tech.trl / 9) * 100);
+card.innerHTML =
+`
+<h3 class="text-md font-semibold text-gray-800
+mb-1">${tech.name}</h3>
+<p class="text-xs text-gray-500
+mb-2">${tech.description}</p>
+<div class="mb-2">
+<span class="text-sm font-medium">TRL:
+${tech.trl}/9</span>
+${tech.patents > 0 ? `
+<span class="ml-2 text-xs
+font-semibold text-yellow-600">(Patents: ${tech.patents})</span>
+`
+:
+''}
+<div class="trl-progress-bg mt-1">
+<div class="trl-progress-bar" style="width:
+; //
+${progressPercent}%">${progressPercent}%</div>
+</div>
+</div>
+${tech.trl < 9 ? `
+<p class="text-xs text-gray-600 mb-2">Next TRL Cost:
+$${costs.money}M, ${costs.rp} RP</p>
+<button class="w-full bg-green-500 hover:bg-green-600
+text-white text-sm font-medium py-1 px-3 rounded transition
+duration-150 ease-in-out"
+onclick="openInvestmentModal('${techKey}')">Invest</button>
+`
+`
+:
+<p class="text-xs text-green-600 font-semibold
+mb-2">Max TRL Reached!</p>
+<button class="w-full bg-gray-400 text-white text-sm
+font-medium py-1 px-3 rounded cursor-not-allowed"
+disabled>Invest</button>
+`}
+`
+;
+return card;
+}
+function updateTechnologyCard(techKey) {
+const tech = gameState.technologies[techKey];
+const costs = calculateTRLCost(techKey);
+const card =
+document.getElementById(`tech-card-${techKey.replace(/\s+/g,
+if (!card) return;
+'
+-
+')}`);
+const progressPercent = tech.trl >= 9 ? 100 :
+Math.round((tech.trl / 9) * 100);
+// Update relevant parts of the card's innerHTML
+card.querySelector('
+.text-sm.font-medium').textContent =
+`TRL: ${tech.trl}/9`
+;
+const patentSpan =
+card.querySelector('
+.text-yellow-600');
+if (tech.patents > 0) {
+if (patentSpan) {
+patentSpan.textContent =
+`(Patents:
+${tech.patents})`
+;
+} else {
+// Add patent span if it doesn't exist
+const trlSpan =
+card.querySelector('
+.text-sm.font-medium');
+const newPatentSpan =
+document.createElement('span');
+newPatentSpan.className = 'ml-2 text-xs
+font-semibold text-yellow-600';
+newPatentSpan.textContent =
+`(Patents:
+${tech.patents})`
+;
+trlSpan.parentNode.insertBefore(newPatentSpan,
+trlSpan.nextSibling);
+}
+} else if (patentSpan) {
+patentSpan.remove(); // Remove if patents drop to 0
+(unlikely here but good practice)
+}
+card.querySelector('
+`${progressPercent}%`
+card.querySelector('
+`${progressPercent}%`
+;
+;
+.trl-progress-bar').style.width =
+.trl-progress-bar').textContent =
+const costEl =
+card.querySelector('
+.text-xs.text-gray-600.mb-2');
+const button = card.querySelector('button');
+if (tech.trl < 9) {
+if (costEl) {
+costEl.textContent =
+`Next TRL Cost:
+$${costs.money}M, ${costs.rp} RP`
+;
+} else { // Add cost element if it was removed
+const trlDiv = card.querySelector('
+.mb-2');
+const newCostEl = document.createElement('p');
+newCostEl.className = 'text-xs text-gray-600
+mb-2';
+newCostEl.textContent =
+`Next TRL Cost:
+$${costs.money}M, ${costs.rp} RP`
+;
+trlDiv.insertAdjacentElement('afterend'
+,
+newCostEl);
+}
+button.disabled = false;
+button.className = 'w-full bg-green-500
+hover:bg-green-600 text-white text-sm font-medium py-1 px-3 rounded
+transition duration-150 ease-in-out';
+button.onclick = () => openInvestmentModal(techKey);
+} else {
+if (costEl) { // Change cost text to Max TRL message
+costEl.textContent = 'Max TRL Reached!';
+costEl.className = 'text-xs text-green-600
+font-semibold mb-2'; // Change styling
+} else { // Add Max TRL message if costEl didn't
+exist
+const trlDiv = card.querySelector('
+.mb-2');
+const maxTrlEl = document.createElement('p');
+maxTrlEl.className = 'text-xs text-green-600
+font-semibold mb-2';
+maxTrlEl.textContent = 'Max TRL Reached!';
+trlDiv.insertAdjacentElement('afterend'
+,
+maxTrlEl);
+}
+button.disabled = true;
+button.className = 'w-full bg-gray-400 text-white
+text-sm font-medium py-1 px-3 rounded cursor-not-allowed';
+}
+}
+function createRaceCard(raceKey) {
+const race = gameState.races[raceKey];
+const card = document.createElement('div');
+card.className = 'bg-gray-50 p-3 rounded-lg border
+border-gray-200';
+card.id =
+`
+race-card-${raceKey.replace(/\s+/g,
+'
+-
+Unique ID
+')}`
+; //
+const progressPercent = race.cost > 0 ? Math.min(100,
+Math.round((race.progress / race.cost) * 100)) : (race.completed ? 100
+: 0);
+const tech = gameState.technologies[race.techDependency];
+const trlMet = tech && tech.trl >= race.targetTRL;
+card.innerHTML =
+`
+<h4 class="text-sm font-semibold
+text-gray-700">${race.name}</h4>
+<p class="text-xs text-gray-500
+mb-1">${race.description}</p>
+<p class="text-xs text-gray-600 mb-1">Req. TRL:
+${race.targetTRL} (${race.techDependency}) - ${trlMet ? '<span
+class="text-green-600 font-semibold">Met</span>' : '<span
+class="text-red-600 font-semibold">Not Met</span>'}</p>
+<div class="trl-progress-bg mb-1">
+<div class="trl-progress-bar ${race.completed ?
+'bg-green-500' : 'bg-purple-500'}" style="width:
+${progressPercent}%">${progressPercent}%</div>
+</div>
+<p class="text-xs text-gray-600 mb-2">Progress:
+$${race.progress}M / $${race.cost}M</p>
+${!race.completed && trlMet ? `
+<button class="w-full bg-purple-500
+hover:bg-purple-600 text-white text-xs font-medium py-1 px-2 rounded
+transition duration-150 ease-in-out"
+onclick="investInRace('${raceKey}'
+, 50)">Invest $50M (Corp)</button>
+`
+: race.completed ? `
+<p class="text-xs text-green-600
+font-semibold">Completed!</p>
+`
+`
+:
+<button class="w-full bg-gray-400 text-white text-xs
+font-medium py-1 px-2 rounded cursor-not-allowed" disabled>Invest (TRL
+Req.)</button>
+`}
+`
+;
+return card;
+}
+function updateRaceProgress(raceKey) {
+const race = gameState.races[raceKey];
+const card =
+document.getElementById(`
+race-card-${raceKey.replace(/\s+/g,
+if (!card || !race) return;
+'
+-
+')}`);
+const progressPercent = race.cost > 0 ? Math.min(100,
+Math.round((race.progress / race.cost) * 100)) : (race.completed ? 100
+: 0);
+const tech =
+gameState.technologies[race.techDependency];
+const trlMet = tech && tech.trl >= race.targetTRL;
+card.querySelector('
+`${progressPercent}%`
+card.querySelector('
+`${progressPercent}%`
+;
+;
+.trl-progress-bar').style.width =
+.trl-progress-bar').textContent =
+card.querySelector('
+.text-xs.text-gray-600.mb-2').textContent =
+`Progress: $${race.progress}M / $${race.cost}M`
+;
+// Update button state/text
+const button = card.querySelector('button');
+const statusP =
+card.querySelector('
+.text-xs.text-green-600.font-semibold'); //
+Completed message
+if (statusP) statusP.remove(); // Remove old status if
+exists
+if (!race.completed && trlMet) {
+button.disabled = false;
+button.className = 'w-full bg-purple-500
+hover:bg-purple-600 text-white text-xs font-medium py-1 px-2 rounded
+transition duration-150 ease-in-out';
+button.textContent = 'Invest $50M (Corp)';
+button.onclick = () => investInRace(raceKey, 50);
+} else if (race.completed) {
+button.remove(); // Remove button if completed
+card.querySelector('
+const progressDiv =
+.trl-progress-bg');
+const completedP = document.createElement('p');
+completedP.className = 'text-xs text-green-600
+font-semibold';
+completedP.textContent = 'Completed!';
+progressDiv.insertAdjacentElement('afterend'
+,
+completedP); // Add completed message
+} else { // Not completed, TRL not met
+button.disabled = true;
+button.className = 'w-full bg-gray-400 text-white
+text-xs font-medium py-1 px-2 rounded cursor-not-allowed';
+button.textContent = 'Invest (TRL Req.)';
+}
+}
+function logEvent(message, type = 'info') {
+console.log(`Event Log (${type}):
+`
+, message);
+const logEntry = document.createElement('p');
+logEntry.textContent =
+`[Turn ${gameState.turn}]
+${message}`
+;
+logEntry.classList.add('text-xs'
+,
+'event-item'); // Add
+animation class
+switch (type) {
+case 'success':
+logEntry.classList.add('text-green-700'); break;
+case 'warning':
+logEntry.classList.add('text-yellow-700'); break;
+case 'error': logEntry.classList.add('text-red-700');
+break;
+case 'event': logEntry.classList.add('text-blue-700'
+,
+'font-semibold'); break;
+default: logEntry.classList.add('text-gray-700');
+}
+// Prepend to keep newest at top, limit log size
+if (eventLogEl.firstChild) {
+eventLogEl.insertBefore(logEntry,
+eventLogEl.firstChild);
+} else {
+eventLogEl.appendChild(logEntry);
+}
+// Limit log size (e.g., keep last 20 entries)
+while (eventLogEl.childElementCount > 30) {
+eventLogEl.removeChild(eventLogEl.lastChild);
+}
+}
+{
+// --- Modal Functions ---
+function showEventModal(eventData) {
+eventDescriptionEl.textContent = eventData.description;
+eventModal.style.display = 'block';
+// Apply effect after modal is closed
+eventModal.querySelector('
+.close-button').onclick = () =>
+closeModal('event-modal');
+eventData.effect(gameState); // Apply effect now
+updateUI(); // Update UI after effect is applied
+};
+eventModal.querySelector('button').onclick = () => {
+closeModal('event-modal');
+eventData.effect(gameState); // Apply effect now
+updateUI(); // Update UI after effect is applied
+};
+}
+function openInvestmentModal(techKey) {
+gameState.investingTechKey = techKey; // Store the tech
+key
+modal
+const tech = gameState.technologies[techKey];
+const costs = calculateTRLCost(techKey);
+investTechNameEl.textContent = tech.name;
+investTechTrlEl.textContent = tech.trl;
+investTechCostEl.textContent = costs.money;
+investTechRpCostEl.textContent = costs.rp;
+// Reset inputs and update available funds display in
+publicInvestmentInput.value = 0;
+corpInvestmentInput.value = 0;
+rpInvestmentInput.value = 0;
+modalPublicFundsEl.textContent = gameState.publicFunds;
+modalCorpFundsEl.textContent = gameState.corpFunds;
+modalResearchPointsEl.textContent =
+gameState.researchPoints;
+investmentErrorEl.style.display = 'none'; // Hide error
+message
+investmentModal.style.display = 'block';
+}
+// Add event listener for the confirm button
+confirmInvestmentButton.onclick = () => {
+const publicInvest =
+parseInt(publicInvestmentInput.value) || 0;
+const corpInvest = parseInt(corpInvestmentInput.value) ||
+0;
+const rpInvest = parseInt(rpInvestmentInput.value) || 0;
+const techKey = gameState.investingTechKey;
+if (!techKey) return; // Should not happen
+const totalMoneyInvest = publicInvest + corpInvest;
+// Validation
+if (publicInvest > gameState.publicFunds || corpInvest >
+gameState.corpFunds || rpInvest > gameState.researchPoints) {
+investmentErrorEl.textContent = 'Investment exceeds
+available resources.
+';
+investmentErrorEl.style.display = 'block';
+return;
+}
+if (publicInvest < 0 || corpInvest < 0 || rpInvest < 0)
+{
+investmentErrorEl.textContent = 'Investment values
+cannot be negative.
+';
+return;
+investmentErrorEl.style.display = 'block';
+}
+// Deduct resources
+gameState.publicFunds -= publicInvest;
+gameState.corpFunds -= corpInvest;
+gameState.researchPoints -= rpInvest;
+logEvent(`Invested $${publicInvest}M (Public),
+$${corpInvest}M (Corp), ${rpInvest} RP in ${techKey}.
+`
+,
+'info');
+// Attempt TRL increase
+attemptTRLIncrease(techKey, totalMoneyInvest, rpInvest);
+closeModal('investment-modal');
+gameState.investingTechKey = null; // Clear the stored
+key
+updateUI(); // Update main UI after investment
+};
+function closeModal(modalId) {
+document.getElementById(modalId).style.display = 'none';
+}
+function showGameOverModal() {
+finalScoreEl.textContent = gameState.score;
+// Add a simple win/loss message based on score
+let message =
+`The innovation race concludes in
+${gameState.currentYear}.
+`
+;
+if (gameState.score > 500) { // Arbitrary win condition
+message += "Your leadership has significantly
+advanced global energy technology! A remarkable achievement!";
+} else if (gameState.score > 200) {
+message += "You made significant strides in energy
+innovation, contributing well to the future.
+";
+} else {
+message += "The path of innovation was challenging.
+More effort is needed for the next energy era.
+";
+}
+gameOverMessageEl.textContent = message;
+gameOverModal.style.display = 'block';
+endTurnButton.disabled = true;
+}
+// --- Event Listeners ---
+endTurnButton.addEventListener('click'
+, endTurn);
+// Close modals if clicked outside content
+window.onclick = function(event) {
+if (event.target == playerSelectModal)
+closeModal('player-select-modal');
+if (event.target == eventModal) closeModal('event-modal');
+if (event.target == investmentModal)
+closeModal('investment-modal');
+if (event.target == gameOverModal)
+closeModal('game-over-modal');
+}
+// --- Initialize ---
+document.addEventListener('DOMContentLoaded'
+, initGame);
+</script>
+</body>
+</html>
